@@ -40,14 +40,3 @@
 - **AI Engine:** [Google Gemini API](https://ai.google.dev/) (Model: `gemini-3.6-flash`).
 
 ---
-
-## 🚀 Hướng Dẫn Cài Đặt & Phát Triển Cục Bộ
-
-### 1. Yêu cầu môi trường
-- Trình duyệt hiện đại (Chrome, Safari, Edge, Firefox).
-- [Node.js](https://nodejs.org/) & `npm` (đã cài đặt để dùng Firebase CLI).
-
-### 2. Clone dự án về máy
-```bash
-git clone [https://github.com/](https://github.com/)<your-username>/<your-repo>.git
-cd <your-repo>
