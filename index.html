@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>VBLab - Sổ Tay Từ Vựng</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- KHU VỰC ĐĂNG NHẬP -->
+  <div class="container" id="authSection">
+    <div class="auth-box">
+      <h1 class="auth-title">VBLab</h1>
+      <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 24px;">Học và ôn tập từ vựng cá nhân</p>
+      <button class="btn-primary" id="btnLogin">Đăng nhập với Google</button>
+    </div>
+  </div>
+
+  <!-- NỘI DUNG ỨNG DỤNG -->
+  <div class="container" id="mainSection" style="display: none;">
+    <!-- Thanh người dùng & Nút Chế độ Tối/Sáng -->
+    <div class="user-bar">
+      <div class="user-profile">
+        <div class="avatar-badge" id="userAvatar">U</div>
+        <span id="userEmail">User</span>
+      </div>
+      <div class="user-actions">
+        <button class="btn-theme" id="btnThemeToggle">Chế độ tối</button>
+        <button class="btn-logout" id="btnLogout">Đăng xuất</button>
+      </div>
+    </div>
+
+    <!-- Thanh Navigation Tabs / Taskbar -->
+    <div class="taskbar">
+      <button class="tab-btn active" onclick="switchTab(event, 'tabAdd')">Thêm từ</button>
+      <button class="tab-btn" onclick="switchTab(event, 'tabList')">Danh sách (<span id="tabCount">0</span>)</button>
+      <button class="tab-btn" onclick="switchTab(event, 'tabFlashcard')">Flashcard</button>
+    </div>
+
+    <!-- 1. TAB THÊM TỪ -->
+    <div id="tabAdd" class="tab-content active">
+      <h2 class="tab-title">Thêm từ vựng</h2>
+      <form id="wordForm">
+        <div class="form-group">
+          <label>TỪ VỰNG TIẾNG ANH</label>
+          <input type="text" id="word" placeholder="vd: Resilient" required autocomplete="off" autocapitalize="sentences">
+        </div>
+
+        <div class="form-group">
+          <label>LOẠI TỪ</label>
+          <select id="type">
+            <option value="Noun">Danh từ (Noun)</option>
+            <option value="Verb">Động từ (Verb)</option>
+            <option value="Adjective">Tính từ (Adj)</option>
+            <option value="Adverb">Trạng từ (Adv)</option>
+            <option value="Phrase">Cụm từ / Idiom</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>NGHĨA TIẾNG VIỆT</label>
+          <input type="text" id="meaning" placeholder="vd: Kiên cường, có khả năng phục hồi" required autocapitalize="sentences">
+        </div>
+
+        <div class="form-group">
+          <label>CÂU VÍ DỤ</label>
+          <input type="text" id="example" placeholder="vd: She is resilient in the face of difficulties." autocapitalize="sentences">
+        </div>
+
+        <button type="submit" class="btn-primary">Lưu từ vựng</button>
+      </form>
+    </div>
+
+    <!-- 2. TAB DANH SÁCH -->
+    <div id="tabList" class="tab-content">
+      <h2 class="tab-title">Kho dữ liệu từ vựng</h2>
+
+      <!-- BẢNG THỐNG KÊ & STREAK -->
+      <div class="stats-panel">
+        <div class="stats-header">
+          <div class="stat-item">
+            <span class="stat-label">Tổng từ đã nạp</span>
+            <span class="stat-val" id="statTotalCount">0</span>
+          </div>
+          <div class="stat-item" style="text-align: right;">
+            <span class="stat-label">Chuỗi học liên tục</span>
+            <span class="stat-val" id="statStreak">1 ngày</span>
+          </div>
+        </div>
+
+        <!-- Thanh phân bố phần trăm -->
+        <div class="progress-stacked">
+          <div class="prog-seg seg-noun" id="segNoun" style="width: 0%" title="Danh từ"></div>
+          <div class="prog-seg seg-verb" id="segVerb" style="width: 0%" title="Động từ"></div>
+          <div class="prog-seg seg-adj" id="segAdj" style="width: 0%" title="Tính từ"></div>
+          <div class="prog-seg seg-adv" id="segAdv" style="width: 0%" title="Trạng từ"></div>
+          <div class="prog-seg seg-phrase" id="segPhrase" style="width: 0%" title="Cụm từ"></div>
+        </div>
+
+        <div class="stats-legend">
+          <span><span class="legend-dot seg-noun"></span>Danh từ (<span id="countNoun">0</span>)</span>
+          <span><span class="legend-dot seg-verb"></span>Động từ (<span id="countVerb">0</span>)</span>
+          <span><span class="legend-dot seg-adj"></span>Tính từ (<span id="countAdj">0</span>)</span>
+          <span><span class="legend-dot seg-adv"></span>Trạng từ (<span id="countAdv">0</span>)</span>
+          <span><span class="legend-dot seg-phrase"></span>Cụm từ (<span id="countPhrase">0</span>)</span>
+        </div>
+      </div>
+
+      <!-- TÌM KIẾM & BỘ LỌC -->
+      <div class="form-group">
+        <input type="text" id="searchInput" placeholder="Tìm kiếm từ hoặc nghĩa...">
+      </div>
+
+      <div class="filter-bar" id="filterBar">
+        <button class="filter-chip active" onclick="setFilter('All', event)">Tất cả</button>
+        <button class="filter-chip" onclick="setFilter('Noun', event)">Danh từ</button>
+        <button class="filter-chip" onclick="setFilter('Verb', event)">Động từ</button>
+        <button class="filter-chip" onclick="setFilter('Adjective', event)">Tính từ</button>
+        <button class="filter-chip" onclick="setFilter('Adverb', event)">Trạng từ</button>
+        <button class="filter-chip" onclick="setFilter('Phrase', event)">Cụm từ</button>
+      </div>
+
+      <div class="word-list" id="wordListContainer"></div>
+    </div>
+
+    <!-- 3. TAB FLASHCARD -->
+    <div id="tabFlashcard" class="tab-content">
+      <div class="flashcard-header-bar">
+        <button class="btn-mode-toggle" id="btnModeToggle" onclick="toggleFlashcardMode()">Chế độ: EN → VI</button>
+        <span style="font-size: 13px; color: var(--text-muted); font-weight: 500;" id="cardCounter">0/0</span>
+      </div>
+
+      <div class="card-perspective" id="flashcard">
+        <div class="card-inner" id="cardInner">
+          <div class="card-face card-front">
+            <h2 id="cardFrontText" class="card-front-title">...</h2>
+            <span id="cardFrontBadge" class="badge-type" style="margin-top: 10px;"></span>
+            <span style="font-size: 12px; margin-top: 20px; color: var(--text-muted);">(Nhấn để lật thẻ)</span>
+          </div>
+          <div class="card-face card-back">
+            <h3 id="cardBackText" class="card-back-title">...</h3>
+            <span id="cardBackBadge" class="badge-type" style="margin-bottom: 6px; display: none;"></span>
+            <p id="cardBackSub" class="card-back-sub"></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="flashcard-nav">
+        <button id="btnPrev">Từ trước</button>
+        <button id="btnShuffle" class="btn-shuffle" title="Trộn ngẫu nhiên">Trộn thẻ</button>
+        <button id="btnNext">Từ tiếp theo</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FIREBASE SCRIPTS -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAbHwurRsaysWMy1fiFRfy0Plxgv3WMIAg",
+      authDomain: "vblab-8c2b3.firebaseapp.com",
+      projectId: "vblab-8c2b3",
+      storageBucket: "vblab-8c2b3.firebasestorage.app",
+      messagingSenderId: "633628286068",
+      appId: "1:633628286068:web:ed5ad4332b28be84bcc521"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const provider = new GoogleAuthProvider();
+
+    let currentUser = null;
+    let vocabList = [];
+    let flashcardDeck = [];
+    let currentIndex = 0;
+    let currentFilter = 'All';
+    let editingDocId = null;
+    let isReverseMode = false;
+
+    // Quản lý theme
+    const btnThemeToggle = document.getElementById('btnThemeToggle');
+    const savedTheme = localStorage.getItem('vblab_theme') || 'light';
+
+    function applyTheme(theme) {
+      if (theme === 'dark') {
+        document.body.classList.add('dark-mode');
+        btnThemeToggle.innerText = 'Chế độ sáng';
+      } else {
+        document.body.classList.remove('dark-mode');
+        btnThemeToggle.innerText = 'Chế độ tối';
+      }
+      localStorage.setItem('vblab_theme', theme);
+    }
+    applyTheme(savedTheme);
+
+    btnThemeToggle.onclick = () => {
+      const isDark = document.body.classList.contains('dark-mode');
+      applyTheme(isDark ? 'light' : 'dark');
+    };
+
+    function capitalizeFirstLetter(str) {
+      if (!str) return '';
+      return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    ['word', 'meaning', 'example'].forEach(id => {
+      const inputEl = document.getElementById(id);
+      inputEl.addEventListener('input', function() {
+        if (this.value.length > 0) {
+          const firstChar = this.value.charAt(0);
+          if (firstChar !== firstChar.toUpperCase()) {
+            const start = this.selectionStart;
+            const end = this.selectionEnd;
+            this.value = capitalizeFirstLetter(this.value);
+            this.setSelectionRange(start, end);
+          }
+        }
+      });
+    });
+
+    // Chuyển Tab
+    window.switchTab = (e, tabId) => {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      
+      document.getElementById(tabId).classList.add('active');
+      e.currentTarget.classList.add('active');
+      
+      if (tabId === 'tabFlashcard') showCard(currentIndex);
+    };
+
+    // Đăng nhập / Đăng xuất
+    document.getElementById('btnLogin').onclick = () => signInWithPopup(auth, provider);
+    document.getElementById('btnLogout').onclick = () => signOut(auth);
+
+    onAuthStateChanged(auth, (user) => {
+      currentUser = user;
+      if (user) {
+        document.getElementById('authSection').style.display = 'none';
+        document.getElementById('mainSection').style.display = 'block';
+        document.getElementById('userEmail').innerText = user.displayName || user.email;
+        document.getElementById('userAvatar').innerText = (user.displayName || "U")[0].toUpperCase();
+        calculateStreak();
+        loadVocabularies(user.uid);
+      } else {
+        document.getElementById('authSection').style.display = 'block';
+        document.getElementById('mainSection').style.display = 'none';
+        vocabList = [];
+        flashcardDeck = [];
+      }
+    });
+
+    // Tính streak
+    function calculateStreak() {
+      const today = new Date().toISOString().slice(0, 10);
+      const lastDate = localStorage.getItem('vblab_last_active_date');
+      let streak = parseInt(localStorage.getItem('vblab_streak') || '0', 10);
+
+      if (!lastDate) {
+        streak = 1;
+      } else if (lastDate !== today) {
+        const last = new Date(lastDate);
+        const current = new Date(today);
+        const diffDays = Math.round((current - last) / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 1) {
+          streak += 1;
+        } else if (diffDays > 1) {
+          streak = 1;
+        }
+      }
+
+      localStorage.setItem('vblab_last_active_date', today);
+      localStorage.setItem('vblab_streak', streak.toString());
+      document.getElementById('statStreak').innerText = `${streak} ngày`;
+    }
+
+    // Thêm từ mới
+    document.getElementById('wordForm').onsubmit = async (e) => {
+      e.preventDefault();
+      const rawWord = capitalizeFirstLetter(document.getElementById('word').value.trim());
+      const wordKey = rawWord.toLowerCase();
+      const type = document.getElementById('type').value;
+      const meaning = capitalizeFirstLetter(document.getElementById('meaning').value.trim());
+      const example = capitalizeFirstLetter(document.getElementById('example').value.trim());
+
+      const wordRef = doc(db, `users/${currentUser.uid}/vocabularies`, wordKey);
+      const docSnap = await getDoc(wordRef);
+      if (docSnap.exists()) {
+        const oldData = docSnap.data();
+        alert(`Từ "${rawWord}" đã tồn tại trong danh sách với nghĩa: "${oldData.meaning}".`);
+        return;
+      }
+
+      await setDoc(wordRef, {
+        word: rawWord,
+        type: type,
+        meaning: meaning,
+        example: example,
+        createdAt: new Date().toISOString()
+      });
+
+      alert(`Đã lưu từ "${rawWord}" thành công.`);
+      document.getElementById('wordForm').reset();
+    };
+
+    // Lắng nghe dữ liệu
+    function loadVocabularies(uid) {
+      const colRef = collection(db, `users/${uid}/vocabularies`);
+      onSnapshot(colRef, (snapshot) => {
+        vocabList = [];
+        snapshot.forEach(doc => vocabList.push({ id: doc.id, ...doc.data() }));
+        
+        vocabList.sort((a, b) => a.word.localeCompare(b.word, 'en', { sensitivity: 'base' }));
+        flashcardDeck = [...vocabList];
+        
+        document.getElementById('tabCount').innerText = vocabList.length;
+        document.getElementById('statTotalCount').innerText = vocabList.length;
+
+        updateStatsProgress(vocabList);
+        applyFiltersAndSearch();
+        showCard(currentIndex);
+      });
+    }
+
+    // Thống kê tiến độ
+    function updateStatsProgress(list) {
+      const counts = { Noun: 0, Verb: 0, Adjective: 0, Adverb: 0, Phrase: 0 };
+      list.forEach(item => {
+        if (counts[item.type] !== undefined) counts[item.type]++;
+      });
+
+      const total = list.length || 1;
+      document.getElementById('countNoun').innerText = counts.Noun;
+      document.getElementById('countVerb').innerText = counts.Verb;
+      document.getElementById('countAdj').innerText = counts.Adjective;
+      document.getElementById('countAdv').innerText = counts.Adverb;
+      document.getElementById('countPhrase').innerText = counts.Phrase;
+
+      document.getElementById('segNoun').style.width = `${(counts.Noun / total) * 100}%`;
+      document.getElementById('segVerb').style.width = `${(counts.Verb / total) * 100}%`;
+      document.getElementById('segAdj').style.width = `${(counts.Adjective / total) * 100}%`;
+      document.getElementById('segAdv').style.width = `${(counts.Adverb / total) * 100}%`;
+      document.getElementById('segPhrase').style.width = `${(counts.Phrase / total) * 100}%`;
+    }
+
+    // Bộ lọc
+    window.setFilter = (type, event) => {
+      currentFilter = type;
+      document.querySelectorAll('.filter-chip').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+      applyFiltersAndSearch();
+    };
+
+    function applyFiltersAndSearch() {
+      const keyword = document.getElementById('searchInput').value.toLowerCase().trim();
+      
+      const filtered = vocabList.filter(item => {
+        const matchesType = (currentFilter === 'All') || (item.type === currentFilter);
+        const matchesSearch = item.word.toLowerCase().includes(keyword) || item.meaning.toLowerCase().includes(keyword);
+        return matchesType && matchesSearch;
+      });
+
+      renderWordList(filtered);
+    }
+
+    // Render danh sách từ
+    function renderWordList(list) {
+      const container = document.getElementById('wordListContainer');
+      container.innerHTML = '';
+
+      if (list.length === 0) {
+        container.innerHTML = '<p style="text-align:center; color:var(--text-muted); padding: 20px 0; font-size: 14px;">Không tìm thấy từ vựng phù hợp.</p>';
+        return;
+      }
+
+      list.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'word-item';
+
+        if (editingDocId === item.id) {
+          div.innerHTML = `
+            <div class="inline-edit-box">
+              <div style="font-weight: 700; font-size: 16px; color: var(--primary); margin-bottom: 2px;">${item.word}</div>
+              <select id="edit_type_${item.id}">
+                <option value="Noun" ${item.type === 'Noun' ? 'selected' : ''}>Danh từ (Noun)</option>
+                <option value="Verb" ${item.type === 'Verb' ? 'selected' : ''}>Động từ (Verb)</option>
+                <option value="Adjective" ${item.type === 'Adjective' ? 'selected' : ''}>Tính từ (Adj)</option>
+                <option value="Adverb" ${item.type === 'Adverb' ? 'selected' : ''}>Trạng từ (Adv)</option>
+                <option value="Phrase" ${item.type === 'Phrase' ? 'selected' : ''}>Cụm từ / Idiom</option>
+              </select>
+              <input type="text" id="edit_meaning_${item.id}" value="${item.meaning}" placeholder="Nghĩa tiếng Việt">
+              <input type="text" id="edit_example_${item.id}" value="${item.example || ''}" placeholder="Câu ví dụ">
+              <div class="inline-edit-btns">
+                <button class="btn-save-inline" onclick="saveInlineEdit('${item.id}', '${item.word}')">Lưu</button>
+                <button class="btn-cancel-inline" onclick="cancelInlineEdit()">Hủy</button>
+              </div>
+            </div>
+          `;
+        } else {
+          div.innerHTML = `
+            <div>
+              <div class="word-main-info">
+                <span class="word-name">${item.word}</span>
+                <span class="badge-type">${item.type}</span>
+              </div>
+              <div class="word-meaning">${item.meaning}</div>
+              ${item.example ? `<div class="word-example">"${item.example}"</div>` : ''}
+            </div>
+            <div class="word-actions">
+              <button class="btn-action edit" onclick="startInlineEdit('${item.id}')">Sửa</button>
+              <button class="btn-action del" onclick="deleteWord('${item.id}', '${item.word}')">Xóa</button>
+            </div>
+          `;
+        }
+        container.appendChild(div);
+      });
+    }
+
+    window.startInlineEdit = (docId) => {
+      editingDocId = docId;
+      applyFiltersAndSearch();
+    };
+
+    window.cancelInlineEdit = () => {
+      editingDocId = null;
+      applyFiltersAndSearch();
+    };
+
+    window.saveInlineEdit = async (docId, wordName) => {
+      const newType = document.getElementById(`edit_type_${docId}`).value;
+      const newMeaning = capitalizeFirstLetter(document.getElementById(`edit_meaning_${docId}`).value.trim());
+      const newExample = capitalizeFirstLetter(document.getElementById(`edit_example_${docId}`).value.trim());
+
+      if (!newMeaning) {
+        alert('Nghĩa tiếng Việt không được để trống.');
+        return;
+      }
+
+      await setDoc(doc(db, `users/${currentUser.uid}/vocabularies`, docId), {
+        type: newType,
+        meaning: newMeaning,
+        example: newExample,
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+
+      editingDocId = null;
+    };
+
+    window.deleteWord = async (docId, wordName) => {
+      if (confirm(`Bạn muốn xóa từ "${wordName}" khỏi danh sách?`)) {
+        await deleteDoc(doc(db, `users/${currentUser.uid}/vocabularies`, docId));
+      }
+    };
+
+    document.getElementById('searchInput').oninput = applyFiltersAndSearch;
+
+    // Chế độ lật ngược Flashcard
+    window.toggleFlashcardMode = () => {
+      isReverseMode = !isReverseMode;
+      const btn = document.getElementById('btnModeToggle');
+      if (isReverseMode) {
+        btn.innerText = 'Chế độ: VI → EN (Lật ngược)';
+      } else {
+        btn.innerText = 'Chế độ: EN → VI (Chuẩn)';
+      }
+      showCard(currentIndex);
+    };
+
+    // Flashcard Logic
+    function showCard(index) {
+      const cardInner = document.getElementById('cardInner');
+      cardInner.classList.remove('flipped');
+
+      const total = flashcardDeck.length;
+      if (index >= total) currentIndex = 0;
+      document.getElementById('cardCounter').innerText = total > 0 ? `${currentIndex + 1}/${total}` : '0/0';
+
+      const frontTitle = document.getElementById('cardFrontText');
+      const frontBadge = document.getElementById('cardFrontBadge');
+      const backTitle = document.getElementById('cardBackText');
+      const backBadge = document.getElementById('cardBackBadge');
+      const backSub = document.getElementById('cardBackSub');
+
+      if (total === 0) {
+        frontTitle.innerText = "Trống";
+        frontBadge.innerText = "";
+        backTitle.innerText = "Hãy thêm từ mới để bắt đầu ôn tập.";
+        backBadge.style.display = "none";
+        backSub.innerText = "";
+        return;
+      }
+
+      const item = flashcardDeck[currentIndex] || flashcardDeck[0];
+
+      if (!isReverseMode) {
+        frontTitle.innerText = item.word;
+        frontBadge.style.display = "inline-block";
+        frontBadge.innerText = item.type;
+
+        backTitle.innerText = item.meaning;
+        backBadge.style.display = "none";
+        backSub.innerText = item.example ? `"${item.example}"` : "";
+      } else {
+        frontTitle.innerText = item.meaning;
+        frontBadge.style.display = "none";
+
+        backTitle.innerText = item.word;
+        backBadge.style.display = "inline-block";
+        backBadge.innerText = item.type;
+        backSub.innerText = item.example ? `"${item.example}"` : "";
+      }
+    }
+
+    document.getElementById('flashcard').onclick = () => {
+      document.getElementById('cardInner').classList.toggle('flipped');
+    };
+
+    document.getElementById('btnNext').onclick = () => {
+      if (flashcardDeck.length > 0) {
+        currentIndex = (currentIndex + 1) % flashcardDeck.length;
+        showCard(currentIndex);
+      }
+    };
+
+    document.getElementById('btnPrev').onclick = () => {
+      if (flashcardDeck.length > 0) {
+        currentIndex = (currentIndex - 1 + flashcardDeck.length) % flashcardDeck.length;
+        showCard(currentIndex);
+      }
+    };
+
+    // Shuffle
+    
+    document.getElementById('btnShuffle').onclick = () => {
+      if (flashcardDeck.length <= 1) return;
+      for (let i = flashcardDeck.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [flashcardDeck[i], flashcardDeck[j]] = [flashcardDeck[j], flashcardDeck[i]];
+      }
+      currentIndex = 0;
+      showCard(currentIndex);
+      alert("Đã trộn ngẫu nhiên thứ tự thẻ flashcard.");
+    };
+  </script>
+</body>
+</html>
