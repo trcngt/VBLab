@@ -187,8 +187,24 @@
   <!-- FIREBASE & AI SCRIPTS -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
-    import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+    import { 
+      getAuth, 
+      signInWithPopup, 
+      signInWithRedirect, 
+      getRedirectResult, 
+      GoogleAuthProvider, 
+      onAuthStateChanged, 
+      signOut 
+    } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
+    import { 
+      getFirestore, 
+      doc, 
+      getDoc, 
+      setDoc, 
+      deleteDoc, 
+      collection, 
+      onSnapshot 
+    } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAbHwurRsaysWMy1fiFRfy0Plxgv3WMIAg",
@@ -211,6 +227,43 @@
     let currentFilter = 'All';
     let editingDocId = null;
     let isReverseMode = false;
+
+    // ĐĂNG NHẬP THÍCH ỨNG: Mobile & Desktop
+    getRedirectResult(auth).catch((error) => {
+      console.error("Lỗi redirect authentication:", error);
+    });
+
+    document.getElementById('btnLogin').onclick = async () => {
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      if (isMobile) {
+        signInWithRedirect(auth, provider);
+      } else {
+        try {
+          await signInWithPopup(auth, provider);
+        } catch (err) {
+          signInWithRedirect(auth, provider);
+        }
+      }
+    };
+
+    document.getElementById('btnLogout').onclick = () => signOut(auth);
+
+    onAuthStateChanged(auth, (user) => {
+      currentUser = user;
+      if (user) {
+        document.getElementById('authSection').style.display = 'none';
+        document.getElementById('mainSection').style.display = 'block';
+        document.getElementById('userEmail').innerText = user.displayName || user.email;
+        document.getElementById('userAvatar').innerText = (user.displayName || "U")[0].toUpperCase();
+        calculateStreak();
+        loadVocabularies(user.uid);
+      } else {
+        document.getElementById('authSection').style.display = 'block';
+        document.getElementById('mainSection').style.display = 'none';
+        vocabList = [];
+        flashcardDeck = [];
+      }
+    });
 
     // QUẢN LÝ POPUP AI CHAT
     const aiPopup = document.getElementById('aiChatPopup');
@@ -347,26 +400,6 @@
       e.currentTarget.classList.add('active');
       if (tabId === 'tabFlashcard') showCard(currentIndex);
     };
-
-    document.getElementById('btnLogin').onclick = () => signInWithPopup(auth, provider);
-    document.getElementById('btnLogout').onclick = () => signOut(auth);
-
-    onAuthStateChanged(auth, (user) => {
-      currentUser = user;
-      if (user) {
-        document.getElementById('authSection').style.display = 'none';
-        document.getElementById('mainSection').style.display = 'block';
-        document.getElementById('userEmail').innerText = user.displayName || user.email;
-        document.getElementById('userAvatar').innerText = (user.displayName || "U")[0].toUpperCase();
-        calculateStreak();
-        loadVocabularies(user.uid);
-      } else {
-        document.getElementById('authSection').style.display = 'block';
-        document.getElementById('mainSection').style.display = 'none';
-        vocabList = [];
-        flashcardDeck = [];
-      }
-    });
 
     function calculateStreak() {
       const today = new Date().toISOString().slice(0, 10);
