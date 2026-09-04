@@ -411,7 +411,13 @@ input[type="text"]:focus, select:focus {
 }
 .flashcard-nav .btn-shuffle {
   flex: 0.8;
-  background: #f1f5f9;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+}
+.flashcard-nav button:hover {
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
 /* ===================================================

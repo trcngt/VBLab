@@ -233,16 +233,12 @@
       console.error("Lỗi redirect authentication:", error);
     });
 
-    document.getElementById('btnLogin').onclick = async () => {
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-      if (isMobile) {
+document.getElementById('btnLogin').onclick = async () => {
+      try {
+        await signInWithPopup(auth, provider);
+      } catch (err) {
+        console.error(err);
         signInWithRedirect(auth, provider);
-      } else {
-        try {
-          await signInWithPopup(auth, provider);
-        } catch (err) {
-          signInWithRedirect(auth, provider);
-        }
       }
     };
 
