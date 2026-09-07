@@ -164,16 +164,11 @@
       </div>
     </div>
 
-    <!-- 4. TAB LUYỆN TẬP (QUIZ MODE) -->
+    <!-- 4. TAB LUYỆN TẬP (TRẮC NGHIỆM 4 ĐÁP ÁN) -->
     <div id="tabQuiz" class="tab-content">
-      <h2 class="tab-title">Luyện tập từ vựng</h2>
+      <h2 class="tab-title">Luyện tập trắc nghiệm</h2>
 
       <div class="quiz-panel">
-        <div class="quiz-mode-switch">
-          <button class="quiz-mode-btn active" id="btnModeMcq" onclick="setPracticeMode('mcq')">Trắc nghiệm 4 đáp án</button>
-          <button class="quiz-mode-btn" id="btnModeFill" onclick="setPracticeMode('fill')">Điền vào chỗ trống</button>
-        </div>
-
         <div id="quizContainer">
           <div class="quiz-question-card">
             <div id="quizPromptTitle" class="quiz-question-title">Đang tải...</div>
@@ -181,13 +176,6 @@
           </div>
 
           <div id="mcqArea" class="quiz-options-grid"></div>
-
-          <div id="fillArea" style="display: none;">
-            <form id="fillForm" class="quiz-fill-form">
-              <input type="text" id="fillInput" class="quiz-fill-input" placeholder="Gõ từ khóa còn thiếu..." autocomplete="off">
-              <button type="submit" class="btn-primary" style="padding: 10px 18px;">Kiểm tra</button>
-            </form>
-          </div>
 
           <div id="quizFeedback" class="quiz-feedback"></div>
 
@@ -297,7 +285,7 @@
         btnLogin.disabled = false;
       });
 
-    // 2. Tự động chuyển luồng theo môi trường Safari vs Icon Màn hình chính
+    // 2. Tự động chuyển luồng theo môi trường Safari vs Standalone Web App
     btnLogin.addEventListener('click', async () => {
       if (isLoggingIn) return;
       isLoggingIn = true;
@@ -362,71 +350,44 @@
       if (tabId === 'tabQuiz') loadNextQuestion();
     };
 
-    let practiceMode = 'mcq';
+    // LOGIC LUYỆN TẬP TRẮC NGHIỆM
     let currentQuizItem = null;
-
-    window.setPracticeMode = (mode) => {
-      practiceMode = mode;
-      document.getElementById('btnModeMcq').classList.toggle('active', mode === 'mcq');
-      document.getElementById('btnModeFill').classList.toggle('active', mode === 'fill');
-      document.getElementById('mcqArea').style.display = mode === 'mcq' ? 'grid' : 'none';
-      document.getElementById('fillArea').style.display = mode === 'fill' ? 'block' : 'none';
-      loadNextQuestion();
-    };
 
     window.loadNextQuestion = () => {
       const fb = document.getElementById('quizFeedback');
       const btnNext = document.getElementById('btnNextQuestion');
       fb.innerHTML = '';
       btnNext.style.display = 'none';
-      document.getElementById('fillInput').value = '';
 
-      if (vocabList.length < 4 && practiceMode === 'mcq') {
+      if (vocabList.length < 4) {
         document.getElementById('quizPromptTitle').innerText = 'Chưa đủ từ vựng';
-        document.getElementById('quizPromptSub').innerText = 'Hãy thêm tối thiểu 4 từ để luyện trắc nghiệm.';
+        document.getElementById('quizPromptSub').innerText = 'Hãy thêm tối thiểu 4 từ vào danh sách để luyện trắc nghiệm.';
         document.getElementById('mcqArea').innerHTML = '';
         return;
       }
 
-      let eligibleList = vocabList;
-      if (practiceMode === 'fill') {
-        eligibleList = vocabList.filter(item => item.example && item.example.toLowerCase().includes(item.word.toLowerCase()));
-        if (eligibleList.length === 0) {
-          document.getElementById('quizPromptTitle').innerText = 'Chưa có ví dụ phù hợp';
-          document.getElementById('quizPromptSub').innerText = 'Cần có câu ví dụ chứa từ vựng để điền từ.';
-          return;
-        }
-      }
+      currentQuizItem = vocabList[Math.floor(Math.random() * vocabList.length)];
 
-      currentQuizItem = eligibleList[Math.floor(Math.random() * eligibleList.length)];
+      document.getElementById('quizPromptTitle').innerText = currentQuizItem.word;
+      document.getElementById('quizPromptSub').innerText = `(${currentQuizItem.type})`;
 
-      if (practiceMode === 'mcq') {
-        document.getElementById('quizPromptTitle').innerText = currentQuizItem.word;
-        document.getElementById('quizPromptSub').innerText = `(${currentQuizItem.type})`;
+      const distractors = vocabList
+        .filter(x => x.id !== currentQuizItem.id)
+        .sort(() => 0.5 - Math.random())
+        .slice(0, 3)
+        .map(x => x.meaning);
 
-        const distractors = vocabList
-          .filter(x => x.id !== currentQuizItem.id)
-          .sort(() => 0.5 - Math.random())
-          .slice(0, 3)
-          .map(x => x.meaning);
+      const options = [currentQuizItem.meaning, ...distractors].sort(() => 0.5 - Math.random());
 
-        const options = [currentQuizItem.meaning, ...distractors].sort(() => 0.5 - Math.random());
-
-        const mcqArea = document.getElementById('mcqArea');
-        mcqArea.innerHTML = '';
-        options.forEach(opt => {
-          const btn = document.createElement('button');
-          btn.className = 'quiz-opt-btn';
-          btn.innerText = opt;
-          btn.onclick = () => selectMcqAnswer(btn, opt);
-          mcqArea.appendChild(btn);
-        });
-      } else {
-        const regex = new RegExp(currentQuizItem.word, 'gi');
-        const maskedExample = currentQuizItem.example.replace(regex, '________');
-        document.getElementById('quizPromptTitle').innerText = maskedExample;
-        document.getElementById('quizPromptSub').innerText = `Gợi ý nghĩa: "${currentQuizItem.meaning}"`;
-      }
+      const mcqArea = document.getElementById('mcqArea');
+      mcqArea.innerHTML = '';
+      options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'quiz-opt-btn';
+        btn.innerText = opt;
+        btn.onclick = () => selectMcqAnswer(btn, opt);
+        mcqArea.appendChild(btn);
+      });
     };
 
     function selectMcqAnswer(selectedBtn, answer) {
@@ -442,25 +403,12 @@
         allBtns.forEach(btn => {
           if (btn.innerText === currentQuizItem.meaning) btn.classList.add('correct');
         });
-        fb.innerHTML = `<span style="color: #ef4444;">Đáp án đúng là: <b>${currentQuizItem.meaning}</b></span>`;
+        fb.innerHTML = `<span style="color: #ef4444;">Đáp án đúng: <b>${currentQuizItem.meaning}</b></span>`;
       }
       document.getElementById('btnNextQuestion').style.display = 'inline-block';
     }
 
-    document.getElementById('fillForm').onsubmit = (e) => {
-      e.preventDefault();
-      const val = document.getElementById('fillInput').value.trim();
-      if (!val) return;
-
-      const fb = document.getElementById('quizFeedback');
-      if (val.toLowerCase() === currentQuizItem.word.toLowerCase()) {
-        fb.innerHTML = `<span style="color: #10b981;">🎉 Chính xác: <b>${currentQuizItem.word}</b></span>`;
-      } else {
-        fb.innerHTML = `<span style="color: #ef4444;">Đáp án đúng: <b>${currentQuizItem.word}</b></span>`;
-      }
-      document.getElementById('btnNextQuestion').style.display = 'inline-block';
-    };
-
+    // AI CHAT
     const aiPopup = document.getElementById('aiChatPopup');
     document.getElementById('btnToggleAiChat').onclick = () => aiPopup.classList.toggle('active');
     document.getElementById('btnCloseAiChat').onclick = () => aiPopup.classList.remove('active');
@@ -541,6 +489,7 @@
       }
     };
 
+    // THEME & CAPITALIZE
     const btnThemeToggle = document.getElementById('btnThemeToggle');
     const savedTheme = localStorage.getItem('vblab_theme') || 'light';
     function applyTheme(theme) {
@@ -593,31 +542,50 @@
       document.getElementById('statStreak').innerText = `${streak} ngày`;
     }
 
+    // FORM LƯU TỪ VỰNG
     document.getElementById('wordForm').onsubmit = async (e) => {
       e.preventDefault();
-      const rawWord = capitalizeFirstLetter(document.getElementById('word').value.trim());
-      const wordKey = rawWord.toLowerCase();
-      const type = document.getElementById('type').value;
-      const meaning = capitalizeFirstLetter(document.getElementById('meaning').value.trim());
-      const example = capitalizeFirstLetter(document.getElementById('example').value.trim());
 
-      const wordRef = doc(db, `users/${currentUser.uid}/vocabularies`, wordKey);
-      const docSnap = await getDoc(wordRef);
-      if (docSnap.exists()) {
-        alert(`Từ "${rawWord}" đã tồn tại.`);
+      if (!currentUser) {
+        alert("Chưa xác thực người dùng. Vui lòng đăng nhập lại!");
         return;
       }
 
-      await setDoc(wordRef, {
-        word: rawWord,
-        type: type,
-        meaning: meaning,
-        example: example,
-        createdAt: new Date().toISOString()
-      });
+      const btnSubmit = e.target.querySelector('button[type="submit"]');
+      btnSubmit.disabled = true;
+      btnSubmit.innerText = "Đang lưu...";
 
-      alert(`Đã lưu "${rawWord}" thành công.`);
-      document.getElementById('wordForm').reset();
+      try {
+        const rawWord = capitalizeFirstLetter(document.getElementById('word').value.trim());
+        const wordKey = rawWord.toLowerCase();
+        const type = document.getElementById('type').value;
+        const meaning = capitalizeFirstLetter(document.getElementById('meaning').value.trim());
+        const example = capitalizeFirstLetter(document.getElementById('example').value.trim());
+
+        const wordRef = doc(db, `users/${currentUser.uid}/vocabularies`, wordKey);
+        const docSnap = await getDoc(wordRef);
+
+        if (docSnap.exists()) {
+          alert(`Từ "${rawWord}" đã tồn tại trong danh sách.`);
+          return;
+        }
+
+        await setDoc(wordRef, {
+          word: rawWord,
+          type: type,
+          meaning: meaning,
+          example: example,
+          createdAt: new Date().toISOString()
+        });
+
+        alert(`Đã lưu "${rawWord}" thành công!`);
+        document.getElementById('wordForm').reset();
+      } catch (err) {
+        alert("Lỗi khi lưu từ: " + err.message);
+      } finally {
+        btnSubmit.disabled = false;
+        btnSubmit.innerText = "Lưu từ vựng";
+      }
     };
 
     function loadVocabularies(uid) {
@@ -753,6 +721,7 @@
 
     document.getElementById('searchInput').oninput = applyFiltersAndSearch;
 
+    // FLASHCARD
     window.toggleFlashcardMode = () => {
       isReverseMode = !isReverseMode;
       document.getElementById('btnModeToggle').innerText = isReverseMode ? 'Chế độ: VI → EN (Lật ngược)' : 'Chế độ: EN → VI (Chuẩn)';
