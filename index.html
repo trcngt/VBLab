@@ -4,7 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>VBLab - Sổ Tay Từ Vựng</title>
+  
+  <!-- PWA & Mobile Meta Tags -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#4f46e5">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="VBLab">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='128' fill='%234f46e5'/%3E%3Ctext x='50%25' y='54%25' font-size='220' font-family='system-ui, -apple-system, sans-serif' font-weight='800' fill='white' dominant-baseline='middle' text-anchor='middle'%3EVB%3C/text%3E%3C/svg%3E">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%234f46e5'/%3E%3Ctext x='50%25' y='55%25' font-size='46' font-family='system-ui, -apple-system, sans-serif' font-weight='800' fill='white' dominant-baseline='middle' text-anchor='middle'%3EVB%3C/text%3E%3C/svg%3E">
+
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -20,7 +29,7 @@
 
   <!-- NỘI DUNG ỨNG DỤNG -->
   <div class="container" id="mainSection" style="display: none;">
-    <!-- Thanh người dùng & Nút Chế độ Tối/Sáng -->
+    <!-- Thanh người dùng -->
     <div class="user-bar">
       <div class="user-profile">
         <div class="avatar-badge" id="userAvatar">U</div>
@@ -37,6 +46,7 @@
       <button class="tab-btn active" onclick="switchTab(event, 'tabAdd')">Thêm từ</button>
       <button class="tab-btn" onclick="switchTab(event, 'tabList')">Danh sách (<span id="tabCount">0</span>)</button>
       <button class="tab-btn" onclick="switchTab(event, 'tabFlashcard')">Flashcard</button>
+      <button class="tab-btn" onclick="switchTab(event, 'tabQuiz')">Luyện tập</button>
     </div>
 
     <!-- 1. TAB THÊM TỪ -->
@@ -152,6 +162,42 @@
       </div>
     </div>
 
+    <!-- 4. TAB LUYỆN TẬP (QUIZ MODE) -->
+    <div id="tabQuiz" class="tab-content">
+      <h2 class="tab-title">Luyện tập từ vựng</h2>
+
+      <div class="quiz-panel">
+        <div class="quiz-mode-switch">
+          <button class="quiz-mode-btn active" id="btnModeMcq" onclick="setPracticeMode('mcq')">Trắc nghiệm 4 đáp án</button>
+          <button class="quiz-mode-btn" id="btnModeFill" onclick="setPracticeMode('fill')">Điền vào chỗ trống</button>
+        </div>
+
+        <div id="quizContainer">
+          <div class="quiz-question-card">
+            <div id="quizPromptTitle" class="quiz-question-title">Đang tải...</div>
+            <div id="quizPromptSub" class="quiz-question-sub"></div>
+          </div>
+
+          <!-- Khu vực trắc nghiệm 4 đáp án -->
+          <div id="mcqArea" class="quiz-options-grid"></div>
+
+          <!-- Khu vực điền vào chỗ trống -->
+          <div id="fillArea" style="display: none;">
+            <form id="fillForm" class="quiz-fill-form">
+              <input type="text" id="fillInput" class="quiz-fill-input" placeholder="Gõ từ khóa còn thiếu..." autocomplete="off" autocorrect="off" autocapitalize="off">
+              <button type="submit" class="btn-primary" style="padding: 10px 18px;">Kiểm tra</button>
+            </form>
+          </div>
+
+          <div id="quizFeedback" class="quiz-feedback"></div>
+
+          <div class="quiz-action-footer">
+            <button class="btn-primary" id="btnNextQuestion" style="display: none; padding: 10px 20px;" onclick="loadNextQuestion()">Câu tiếp theo ➔</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- NÚT BONG BÓNG AI GÓC DƯỚI PHẢI -->
     <button class="ai-floating-btn" id="btnToggleAiChat" title="Hỏi đáp từ vựng với AI">✨</button>
 
@@ -184,7 +230,7 @@
     </div>
   </div>
 
-  <!-- FIREBASE & AI SCRIPTS -->
+  <!-- FIREBASE & CORE LOGIC -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
     import { 
@@ -206,9 +252,16 @@
       onSnapshot 
     } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 
+    // Đăng ký Service Worker cho PWA
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW registration error:', err));
+      });
+    }
+
     const firebaseConfig = {
       apiKey: "AIzaSyAbHwurRsaysWMy1fiFRfy0Plxgv3WMIAg",
-      authDomain: "vblab-8c2b3.firebaseapp.com",
+      authDomain: "vblabstudy.web.app",
       projectId: "vblab-8c2b3",
       storageBucket: "vblab-8c2b3.firebasestorage.app",
       messagingSenderId: "633628286068",
@@ -228,17 +281,19 @@
     let editingDocId = null;
     let isReverseMode = false;
 
-    // ĐĂNG NHẬP THÍCH ỨNG: Mobile & Desktop
-    getRedirectResult(auth).catch((error) => {
-      console.error("Lỗi redirect authentication:", error);
-    });
+    // ĐĂNG NHẬP
+    getRedirectResult(auth).catch((error) => console.error("Redirect Error:", error));
 
-document.getElementById('btnLogin').onclick = async () => {
-      try {
-        await signInWithPopup(auth, provider);
-      } catch (err) {
-        console.error(err);
+    document.getElementById('btnLogin').onclick = async () => {
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      if (isMobile) {
         signInWithRedirect(auth, provider);
+      } else {
+        try {
+          await signInWithPopup(auth, provider);
+        } catch (err) {
+          signInWithRedirect(auth, provider);
+        }
       }
     };
 
@@ -261,6 +316,117 @@ document.getElementById('btnLogin').onclick = async () => {
       }
     });
 
+    // NAVIGATION TABS
+    window.switchTab = (e, tabId) => {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      e.currentTarget.classList.add('active');
+      if (tabId === 'tabFlashcard') showCard(currentIndex);
+      if (tabId === 'tabQuiz') loadNextQuestion();
+    };
+
+    // --- QUIZ & PRACTICE LOGIC ---
+    let practiceMode = 'mcq'; // 'mcq' hoặc 'fill'
+    let currentQuizItem = null;
+
+    window.setPracticeMode = (mode) => {
+      practiceMode = mode;
+      document.getElementById('btnModeMcq').classList.toggle('active', mode === 'mcq');
+      document.getElementById('btnModeFill').classList.toggle('active', mode === 'fill');
+      document.getElementById('mcqArea').style.display = mode === 'mcq' ? 'grid' : 'none';
+      document.getElementById('fillArea').style.display = mode === 'fill' ? 'block' : 'none';
+      loadNextQuestion();
+    };
+
+    window.loadNextQuestion = () => {
+      const fb = document.getElementById('quizFeedback');
+      const btnNext = document.getElementById('btnNextQuestion');
+      fb.innerHTML = '';
+      btnNext.style.display = 'none';
+      document.getElementById('fillInput').value = '';
+
+      if (vocabList.length < 4 && practiceMode === 'mcq') {
+        document.getElementById('quizPromptTitle').innerText = 'Chưa đủ từ vựng';
+        document.getElementById('quizPromptSub').innerText = 'Hãy thêm tối thiểu 4 từ vào danh sách để kích hoạt trắc nghiệm.';
+        document.getElementById('mcqArea').innerHTML = '';
+        return;
+      }
+
+      let eligibleList = vocabList;
+      if (practiceMode === 'fill') {
+        eligibleList = vocabList.filter(item => item.example && item.example.toLowerCase().includes(item.word.toLowerCase()));
+        if (eligibleList.length === 0) {
+          document.getElementById('quizPromptTitle').innerText = 'Chưa có ví dụ phù hợp';
+          document.getElementById('quizPromptSub').innerText = 'Hãy thêm các từ có câu ví dụ chứa chính từ đó để chơi điền từ.';
+          return;
+        }
+      }
+
+      currentQuizItem = eligibleList[Math.floor(Math.random() * eligibleList.length)];
+
+      if (practiceMode === 'mcq') {
+        document.getElementById('quizPromptTitle').innerText = currentQuizItem.word;
+        document.getElementById('quizPromptSub').innerText = `(${currentQuizItem.type})`;
+
+        const distractors = vocabList
+          .filter(x => x.id !== currentQuizItem.id)
+          .sort(() => 0.5 - Math.random())
+          .slice(0, 3)
+          .map(x => x.meaning);
+
+        const options = [currentQuizItem.meaning, ...distractors].sort(() => 0.5 - Math.random());
+
+        const mcqArea = document.getElementById('mcqArea');
+        mcqArea.innerHTML = '';
+        options.forEach(opt => {
+          const btn = document.createElement('button');
+          btn.className = 'quiz-opt-btn';
+          btn.innerText = opt;
+          btn.onclick = () => selectMcqAnswer(btn, opt);
+          mcqArea.appendChild(btn);
+        });
+      } else {
+        // Chế độ Fill-in-the-blank
+        const regex = new RegExp(currentQuizItem.word, 'gi');
+        const maskedExample = currentQuizItem.example.replace(regex, '________');
+        document.getElementById('quizPromptTitle').innerText = maskedExample;
+        document.getElementById('quizPromptSub').innerText = `Gợi ý nghĩa: "${currentQuizItem.meaning}"`;
+      }
+    };
+
+    function selectMcqAnswer(selectedBtn, answer) {
+      const allBtns = document.querySelectorAll('.quiz-opt-btn');
+      allBtns.forEach(btn => btn.disabled = true);
+
+      const fb = document.getElementById('quizFeedback');
+      if (answer === currentQuizItem.meaning) {
+        selectedBtn.classList.add('correct');
+        fb.innerHTML = '<span style="color: #10b981;">🎉 Chính xác! Bạn nhớ rất tốt.</span>';
+      } else {
+        selectedBtn.classList.add('wrong');
+        allBtns.forEach(btn => {
+          if (btn.innerText === currentQuizItem.meaning) btn.classList.add('correct');
+        });
+        fb.innerHTML = `<span style="color: #ef4444;">Chưa chính xác. Đáp án đúng là: <b>${currentQuizItem.meaning}</b></span>`;
+      }
+      document.getElementById('btnNextQuestion').style.display = 'inline-block';
+    }
+
+    document.getElementById('fillForm').onsubmit = (e) => {
+      e.preventDefault();
+      const val = document.getElementById('fillInput').value.trim();
+      if (!val) return;
+
+      const fb = document.getElementById('quizFeedback');
+      if (val.toLowerCase() === currentQuizItem.word.toLowerCase()) {
+        fb.innerHTML = `<span style="color: #10b981;">🎉 Tuyệt vời! Bạn đã điền chính xác: <b>${currentQuizItem.word}</b></span>`;
+      } else {
+        fb.innerHTML = `<span style="color: #ef4444;">Chưa đúng. Từ cần điền là: <b>${currentQuizItem.word}</b></span>`;
+      }
+      document.getElementById('btnNextQuestion').style.display = 'inline-block';
+    };
+
     // QUẢN LÝ POPUP AI CHAT
     const aiPopup = document.getElementById('aiChatPopup');
     const btnToggleAiChat = document.getElementById('btnToggleAiChat');
@@ -269,7 +435,6 @@ document.getElementById('btnLogin').onclick = async () => {
     btnToggleAiChat.onclick = () => aiPopup.classList.toggle('active');
     btnCloseAiChat.onclick = () => aiPopup.classList.remove('active');
 
-    // QUẢN LÝ API KEY
     let geminiApiKey = localStorage.getItem('vblab_gemini_key') || '';
     document.getElementById('btnConfigKey').onclick = () => {
       const key = prompt('Nhập Gemini API Key (Lấy tại aistudio.google.com):', geminiApiKey);
@@ -280,7 +445,6 @@ document.getElementById('btnLogin').onclick = async () => {
       }
     };
 
-    // LOGIC GỬI CHAT CHO GEMINI
     const chatBox = document.getElementById('chatBox');
     const chatInput = document.getElementById('chatInput');
     const chatForm = document.getElementById('chatForm');
@@ -388,14 +552,6 @@ document.getElementById('btnLogin').onclick = async () => {
         }
       });
     });
-
-    window.switchTab = (e, tabId) => {
-      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-      document.getElementById(tabId).classList.add('active');
-      e.currentTarget.classList.add('active');
-      if (tabId === 'tabFlashcard') showCard(currentIndex);
-    };
 
     function calculateStreak() {
       const today = new Date().toISOString().slice(0, 10);

@@ -591,3 +591,107 @@ body.dark-mode .ai-chip {
   font-weight: 600;
   cursor: pointer;
 }
+/* --- QUIZ & PRACTICE MODE --- */
+.quiz-panel {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 24px;
+  margin-top: 16px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+}
+.quiz-mode-switch {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.quiz-mode-btn {
+  flex: 1;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  background: var(--card-bg);
+  color: var(--text-color);
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+.quiz-mode-btn.active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+.quiz-question-card {
+  text-align: center;
+  margin-bottom: 24px;
+}
+.quiz-question-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--text-color);
+  margin-bottom: 8px;
+}
+.quiz-question-sub {
+  font-size: 15px;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+.quiz-options-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+.quiz-opt-btn {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1.5px solid var(--border-color);
+  background: var(--card-bg);
+  color: var(--text-color);
+  font-size: 15px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.quiz-opt-btn:hover {
+  border-color: var(--primary);
+  background: rgba(79, 70, 229, 0.05);
+}
+.quiz-opt-btn.correct {
+  background: #10b981 !important;
+  color: white !important;
+  border-color: #059669 !important;
+}
+.quiz-opt-btn.wrong {
+  background: #ef4444 !important;
+  color: white !important;
+  border-color: #dc2626 !important;
+}
+.quiz-feedback {
+  margin-top: 16px;
+  font-weight: 600;
+  font-size: 15px;
+  min-height: 24px;
+  text-align: center;
+}
+.quiz-fill-form {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+.quiz-fill-input {
+  flex: 1;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  background: var(--input-bg, var(--card-bg));
+  color: var(--text-color);
+  font-size: 16px;
+}
+.quiz-action-footer {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+}
