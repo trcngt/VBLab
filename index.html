@@ -281,7 +281,7 @@
     let editingDocId = null;
     let isReverseMode = false;
 
-    // LẮNG NGHE KẾT QUẢ ĐĂNG NHẬP CHUYỂN HƯỚNG
+    // LẮNG NGHE KẾT QUẢ ĐĂNG NHẬP REDIRECT TRÊN MOBILE
     getRedirectResult(auth)
       .then((result) => {
         if (result && result.user) {
@@ -289,31 +289,30 @@
         }
       })
       .catch((error) => {
-        alert("Lỗi xác thực: " + error.message);
+        alert("Lỗi xác thực: " + error.code + " - " + error.message);
       });
 
-    // NÚT BẤM ĐĂNG NHẬP (Tối ưu cho cả điện thoại và máy tính)
+    // NÚT BẤM ĐĂNG NHẬP (ƯU TIÊN REDIRECT CHO MOBILE)
     const btnLogin = document.getElementById('btnLogin');
-    btnLogin.addEventListener('click', function() {
+    btnLogin.onclick = () => {
       btnLogin.innerText = "Đang kết nối...";
       btnLogin.disabled = true;
 
       const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-      
       if (isMobile) {
-        signInWithRedirect(auth, provider).catch(function(err) {
-          alert("Lỗi: " + err.message);
-          btnLogin.innerText = "Đăng nhập với Google";
-          btnLogin.disabled = false;
-        });
+        signInWithRedirect(auth, provider);
       } else {
-        signInWithPopup(auth, provider).catch(function(err) {
-          alert("Lỗi: " + err.message);
-          btnLogin.innerText = "Đăng nhập với Google";
-          btnLogin.disabled = false;
+        signInWithPopup(auth, provider).catch((err) => {
+          if (err.code === 'auth/popup-blocked') {
+            signInWithRedirect(auth, provider);
+          } else {
+            alert("Lỗi: " + err.message);
+            btnLogin.innerText = "Đăng nhập với Google";
+            btnLogin.disabled = false;
+          }
         });
       }
-    });
+    };
 
     document.getElementById('btnLogout').onclick = () => signOut(auth);
 
