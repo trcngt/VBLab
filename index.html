@@ -4,18 +4,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>VBLab - Sổ Tay Từ Vựng</title>
-  <!-- Icon chuẩn cho iOS Safari và Web -->
-<!-- PWA Manifest & App Icons -->
+
+  <!-- PWA Manifest & App Icons -->
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="apple-touch-icon-precomposed" href="/apple-touch-icon.png">
   <link rel="icon" type="image/png" href="/apple-touch-icon.png">
   <meta name="apple-mobile-web-app-title" content="VBLab">
   <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="theme-color" content="#4f46e5">
+
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
+  <!-- KHU VỰC ĐĂNG NHẬP -->
   <div class="container" id="authSection">
     <div class="auth-box">
       <h1 class="auth-title"><span class="brand-logo-badge">VB</span> VBLab</h1>
@@ -25,7 +29,9 @@
     </div>
   </div>
 
+  <!-- NỘI DUNG ỨNG DỤNG -->
   <div class="container" id="mainSection" style="display: none;">
+    <!-- Thanh người dùng -->
     <div class="user-bar">
       <div class="user-profile">
         <div class="avatar-badge" id="userAvatar">U</div>
@@ -37,19 +43,21 @@
       </div>
     </div>
 
+    <!-- Thanh Navigation Tabs -->
     <div class="taskbar">
       <button class="tab-btn active" onclick="switchTab(event, 'tabAdd')">Thêm từ</button>
-      <button class="tab-btn" onclick="switchTab(event, 'tabList')">Danh sách</button>
+      <button class="tab-btn" onclick="switchTab(event, 'tabList')">Danh sách (<span id="tabCount">0</span>)</button>
       <button class="tab-btn" onclick="switchTab(event, 'tabFlashcard')">Flashcard</button>
       <button class="tab-btn" onclick="switchTab(event, 'tabQuiz')">Luyện tập</button>
     </div>
 
+    <!-- 1. TAB THÊM TỪ -->
     <div id="tabAdd" class="tab-content active">
       <h2 class="tab-title">Thêm từ vựng</h2>
       <form id="wordForm">
         <div class="form-group">
           <label>TỪ VỰNG TIẾNG ANH</label>
-          <input type="text" id="word" placeholder="VD: Resilient" required autocomplete="off" autocapitalize="sentences">
+          <input type="text" id="word" placeholder="vd: Resilient" required autocomplete="off" autocapitalize="sentences">
         </div>
 
         <div class="form-group">
@@ -65,21 +73,23 @@
 
         <div class="form-group">
           <label>NGHĨA TIẾNG VIỆT</label>
-          <input type="text" id="meaning" placeholder="VD: Kiên cường, có khả năng phục hồi" required autocapitalize="sentences">
+          <input type="text" id="meaning" placeholder="vd: Kiên cường, có khả năng phục hồi" required autocapitalize="sentences">
         </div>
 
         <div class="form-group">
           <label>CÂU VÍ DỤ</label>
-          <input type="text" id="example" placeholder="VD: She is resilient in the face of difficulties." autocapitalize="sentences">
+          <input type="text" id="example" placeholder="vd: She is resilient in the face of difficulties." autocapitalize="sentences">
         </div>
 
         <button type="submit" class="btn-primary">Lưu từ vựng</button>
       </form>
     </div>
 
+    <!-- 2. TAB DANH SÁCH -->
     <div id="tabList" class="tab-content">
       <h2 class="tab-title">Kho dữ liệu từ vựng</h2>
 
+      <!-- BẢNG THỐNG KÊ & STREAK -->
       <div class="stats-panel">
         <div class="stats-header">
           <div class="stat-item">
@@ -125,6 +135,7 @@
       <div class="word-list" id="wordListContainer"></div>
     </div>
 
+    <!-- 3. TAB FLASHCARD -->
     <div id="tabFlashcard" class="tab-content">
       <div class="flashcard-header-bar">
         <button class="btn-mode-toggle" id="btnModeToggle" onclick="toggleFlashcardMode()">Chế độ: EN → VI</button>
@@ -153,6 +164,7 @@
       </div>
     </div>
 
+    <!-- 4. TAB LUYỆN TẬP (QUIZ MODE) -->
     <div id="tabQuiz" class="tab-content">
       <h2 class="tab-title">Luyện tập từ vựng</h2>
 
@@ -186,8 +198,10 @@
       </div>
     </div>
 
+    <!-- NÚT BONG BÓNG AI -->
     <button class="ai-floating-btn" id="btnToggleAiChat" title="Hỏi đáp từ vựng với AI">✨</button>
 
+    <!-- POPUP CHAT AI -->
     <div class="ai-chat-popup" id="aiChatPopup">
       <div class="ai-popup-header">
         <h4>✨ Trợ lý Từ vựng AI</h4>
@@ -216,18 +230,14 @@
     </div>
   </div>
 
+  <!-- FIREBASE SCRIPTS -->
   <script type="module">
-    // Hủy đăng ký Service Worker cũ tránh can thiệp session
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(regs => {
-        for (let reg of regs) reg.unregister();
-      });
-    }
-
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
     import { 
       getAuth, 
       signInWithPopup, 
+      signInWithRedirect,
+      getRedirectResult,
       GoogleAuthProvider, 
       onAuthStateChanged, 
       signOut,
@@ -258,8 +268,7 @@
     const db = getFirestore(app);
     const provider = new GoogleAuthProvider();
 
-    // Bắt buộc lưu phiên đăng nhập bền vững vào IndexedDB của Safari
-    setPersistence(auth, browserLocalPersistence).catch(err => console.log('Persistence error:', err));
+    setPersistence(auth, browserLocalPersistence).catch(err => console.log('Persistence:', err));
 
     let currentUser = null;
     let vocabList = [];
@@ -271,19 +280,55 @@
 
     const btnLogin = document.getElementById('btnLogin');
     const loginStatus = document.getElementById('loginStatus');
+    let isLoggingIn = false;
 
-    // Đăng nhập trực tiếp bằng popup
-    btnLogin.addEventListener('click', async () => {
-      loginStatus.innerText = "Đang kết nối tới Google...";
-      btnLogin.disabled = true;
-
-      try {
-        const result = await signInWithPopup(auth, provider);
-        loginStatus.innerText = "Đăng nhập thành công! Đang tải dữ liệu...";
-      } catch (err) {
-        alert("Lỗi đăng nhập: " + err.message);
+    // 1. Nhận kết quả xác thực khi mở từ Icon Màn hình chính (Redirect)
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result && result.user) {
+          loginStatus.innerText = "Đang tải dữ liệu...";
+        }
+      })
+      .catch((err) => {
+        if (err.code !== 'auth/popup-closed-by-user') {
+          alert("Lỗi đăng nhập: " + err.message);
+        }
         loginStatus.innerText = "";
         btnLogin.disabled = false;
+      });
+
+    // 2. Tự động chuyển luồng theo môi trường Safari vs Icon Màn hình chính
+    btnLogin.addEventListener('click', async () => {
+      if (isLoggingIn) return;
+      isLoggingIn = true;
+      btnLogin.disabled = true;
+
+      const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+
+      if (isStandalone) {
+        loginStatus.innerText = "Đang chuyển hướng...";
+        try {
+          await signInWithRedirect(auth, provider);
+        } catch (err) {
+          alert("Lỗi: " + err.message);
+          loginStatus.innerText = "";
+          btnLogin.disabled = false;
+          isLoggingIn = false;
+        }
+      } else {
+        loginStatus.innerText = "Đang mở cửa sổ đăng nhập...";
+        try {
+          await signInWithPopup(auth, provider);
+          loginStatus.innerText = "Đang tải dữ liệu...";
+        } catch (err) {
+          if (err.code !== 'auth/cancelled-popup-request' && err.code !== 'auth/popup-closed-by-user') {
+            alert("Lỗi đăng nhập: " + err.message);
+          }
+          loginStatus.innerText = "";
+          btnLogin.disabled = false;
+        } finally {
+          isLoggingIn = false;
+        }
       }
     });
 
@@ -308,7 +353,6 @@
       }
     });
 
-    // CHUYỂN TAB
     window.switchTab = (e, tabId) => {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
@@ -318,7 +362,6 @@
       if (tabId === 'tabQuiz') loadNextQuestion();
     };
 
-    // LOGIC LUYỆN TẬP
     let practiceMode = 'mcq';
     let currentQuizItem = null;
 
@@ -418,7 +461,6 @@
       document.getElementById('btnNextQuestion').style.display = 'inline-block';
     };
 
-    // AI CHAT
     const aiPopup = document.getElementById('aiChatPopup');
     document.getElementById('btnToggleAiChat').onclick = () => aiPopup.classList.toggle('active');
     document.getElementById('btnCloseAiChat').onclick = () => aiPopup.classList.remove('active');
@@ -499,7 +541,6 @@
       }
     };
 
-    // THEME & CAPITALIZE
     const btnThemeToggle = document.getElementById('btnThemeToggle');
     const savedTheme = localStorage.getItem('vblab_theme') || 'light';
     function applyTheme(theme) {
@@ -712,7 +753,6 @@
 
     document.getElementById('searchInput').oninput = applyFiltersAndSearch;
 
-    // FLASHCARD
     window.toggleFlashcardMode = () => {
       isReverseMode = !isReverseMode;
       document.getElementById('btnModeToggle').innerText = isReverseMode ? 'Chế độ: VI → EN (Lật ngược)' : 'Chế độ: EN → VI (Chuẩn)';
