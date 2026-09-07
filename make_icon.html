@@ -1,0 +1,16 @@
+
+<canvas id='c' width='192' height='192'></canvas>
+<script>
+  const c = document.getElementById('c');
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#4f46e5';
+  ctx.beginPath();
+  ctx.roundRect(0, 0, 192, 192, 40);
+  ctx.fill();
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 80px system-ui, -apple-system, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('VB', 96, 102);
+  console.log(c.toDataURL('image/png'));
+</script>

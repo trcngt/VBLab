@@ -4,32 +4,28 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>VBLab - Sổ Tay Từ Vựng</title>
-  
-  <!-- PWA & Mobile Meta Tags -->
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#4f46e5">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <!-- Icon chuẩn cho iOS Safari và Web -->
+<!-- PWA Manifest & App Icons -->
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="apple-touch-icon-precomposed" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="/apple-touch-icon.png">
   <meta name="apple-mobile-web-app-title" content="VBLab">
-  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='128' fill='%234f46e5'/%3E%3Ctext x='50%25' y='54%25' font-size='220' font-family='system-ui, -apple-system, sans-serif' font-weight='800' fill='white' dominant-baseline='middle' text-anchor='middle'%3EVB%3C/text%3E%3C/svg%3E">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%234f46e5'/%3E%3Ctext x='50%25' y='55%25' font-size='46' font-family='system-ui, -apple-system, sans-serif' font-weight='800' fill='white' dominant-baseline='middle' text-anchor='middle'%3EVB%3C/text%3E%3C/svg%3E">
-
+  <meta name="apple-mobile-web-app-capable" content="yes">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <!-- KHU VỰC ĐĂNG NHẬP -->
   <div class="container" id="authSection">
     <div class="auth-box">
       <h1 class="auth-title"><span class="brand-logo-badge">VB</span> VBLab</h1>
       <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 24px;">Học và ôn tập từ vựng cá nhân</p>
       <button class="btn-primary" id="btnLogin">Đăng nhập với Google</button>
+      <div id="loginStatus" style="margin-top: 14px; font-size: 13px; color: var(--primary);"></div>
     </div>
   </div>
 
-  <!-- NỘI DUNG ỨNG DỤNG -->
   <div class="container" id="mainSection" style="display: none;">
-    <!-- Thanh người dùng -->
     <div class="user-bar">
       <div class="user-profile">
         <div class="avatar-badge" id="userAvatar">U</div>
@@ -41,21 +37,19 @@
       </div>
     </div>
 
-    <!-- Thanh Navigation Tabs -->
     <div class="taskbar">
       <button class="tab-btn active" onclick="switchTab(event, 'tabAdd')">Thêm từ</button>
-      <button class="tab-btn" onclick="switchTab(event, 'tabList')">Danh sách (<span id="tabCount">0</span>)</button>
+      <button class="tab-btn" onclick="switchTab(event, 'tabList')">Danh sách</button>
       <button class="tab-btn" onclick="switchTab(event, 'tabFlashcard')">Flashcard</button>
       <button class="tab-btn" onclick="switchTab(event, 'tabQuiz')">Luyện tập</button>
     </div>
 
-    <!-- 1. TAB THÊM TỪ -->
     <div id="tabAdd" class="tab-content active">
       <h2 class="tab-title">Thêm từ vựng</h2>
       <form id="wordForm">
         <div class="form-group">
           <label>TỪ VỰNG TIẾNG ANH</label>
-          <input type="text" id="word" placeholder="vd: Resilient" required autocomplete="off" autocapitalize="sentences">
+          <input type="text" id="word" placeholder="VD: Resilient" required autocomplete="off" autocapitalize="sentences">
         </div>
 
         <div class="form-group">
@@ -71,23 +65,21 @@
 
         <div class="form-group">
           <label>NGHĨA TIẾNG VIỆT</label>
-          <input type="text" id="meaning" placeholder="vd: Kiên cường, có khả năng phục hồi" required autocapitalize="sentences">
+          <input type="text" id="meaning" placeholder="VD: Kiên cường, có khả năng phục hồi" required autocapitalize="sentences">
         </div>
 
         <div class="form-group">
           <label>CÂU VÍ DỤ</label>
-          <input type="text" id="example" placeholder="vd: She is resilient in the face of difficulties." autocapitalize="sentences">
+          <input type="text" id="example" placeholder="VD: She is resilient in the face of difficulties." autocapitalize="sentences">
         </div>
 
         <button type="submit" class="btn-primary">Lưu từ vựng</button>
       </form>
     </div>
 
-    <!-- 2. TAB DANH SÁCH -->
     <div id="tabList" class="tab-content">
       <h2 class="tab-title">Kho dữ liệu từ vựng</h2>
 
-      <!-- BẢNG THỐNG KÊ & STREAK -->
       <div class="stats-panel">
         <div class="stats-header">
           <div class="stat-item">
@@ -133,7 +125,6 @@
       <div class="word-list" id="wordListContainer"></div>
     </div>
 
-    <!-- 3. TAB FLASHCARD -->
     <div id="tabFlashcard" class="tab-content">
       <div class="flashcard-header-bar">
         <button class="btn-mode-toggle" id="btnModeToggle" onclick="toggleFlashcardMode()">Chế độ: EN → VI</button>
@@ -162,7 +153,6 @@
       </div>
     </div>
 
-    <!-- 4. TAB LUYỆN TẬP (QUIZ MODE) -->
     <div id="tabQuiz" class="tab-content">
       <h2 class="tab-title">Luyện tập từ vựng</h2>
 
@@ -178,13 +168,11 @@
             <div id="quizPromptSub" class="quiz-question-sub"></div>
           </div>
 
-          <!-- Khu vực trắc nghiệm 4 đáp án -->
           <div id="mcqArea" class="quiz-options-grid"></div>
 
-          <!-- Khu vực điền vào chỗ trống -->
           <div id="fillArea" style="display: none;">
             <form id="fillForm" class="quiz-fill-form">
-              <input type="text" id="fillInput" class="quiz-fill-input" placeholder="Gõ từ khóa còn thiếu..." autocomplete="off" autocorrect="off" autocapitalize="off">
+              <input type="text" id="fillInput" class="quiz-fill-input" placeholder="Gõ từ khóa còn thiếu..." autocomplete="off">
               <button type="submit" class="btn-primary" style="padding: 10px 18px;">Kiểm tra</button>
             </form>
           </div>
@@ -198,10 +186,8 @@
       </div>
     </div>
 
-    <!-- NÚT BONG BÓNG AI GÓC DƯỚI PHẢI -->
     <button class="ai-floating-btn" id="btnToggleAiChat" title="Hỏi đáp từ vựng với AI">✨</button>
 
-    <!-- CỬA SỔ POPUP CHAT AI -->
     <div class="ai-chat-popup" id="aiChatPopup">
       <div class="ai-popup-header">
         <h4>✨ Trợ lý Từ vựng AI</h4>
@@ -230,17 +216,23 @@
     </div>
   </div>
 
-  <!-- FIREBASE & CORE LOGIC -->
   <script type="module">
+    // Hủy đăng ký Service Worker cũ tránh can thiệp session
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(regs => {
+        for (let reg of regs) reg.unregister();
+      });
+    }
+
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
     import { 
       getAuth, 
       signInWithPopup, 
-      signInWithRedirect, 
-      getRedirectResult, 
       GoogleAuthProvider, 
       onAuthStateChanged, 
-      signOut 
+      signOut,
+      setPersistence,
+      browserLocalPersistence
     } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
     import { 
       getFirestore, 
@@ -251,13 +243,6 @@
       collection, 
       onSnapshot 
     } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
-
-    // Đăng ký Service Worker cho PWA
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW error:', err));
-      });
-    }
 
     const firebaseConfig = {
       apiKey: "AIzaSyAbHwurRsaysWMy1fiFRfy0Plxgv3WMIAg",
@@ -273,6 +258,9 @@
     const db = getFirestore(app);
     const provider = new GoogleAuthProvider();
 
+    // Bắt buộc lưu phiên đăng nhập bền vững vào IndexedDB của Safari
+    setPersistence(auth, browserLocalPersistence).catch(err => console.log('Persistence error:', err));
+
     let currentUser = null;
     let vocabList = [];
     let flashcardDeck = [];
@@ -281,38 +269,23 @@
     let editingDocId = null;
     let isReverseMode = false;
 
-    // LẮNG NGHE KẾT QUẢ ĐĂNG NHẬP REDIRECT TRÊN MOBILE
-    getRedirectResult(auth)
-      .then((result) => {
-        if (result && result.user) {
-          console.log("Xác thực redirect thành công:", result.user);
-        }
-      })
-      .catch((error) => {
-        alert("Lỗi xác thực: " + error.code + " - " + error.message);
-      });
-
-    // NÚT BẤM ĐĂNG NHẬP (ƯU TIÊN REDIRECT CHO MOBILE)
     const btnLogin = document.getElementById('btnLogin');
-    btnLogin.onclick = () => {
-      btnLogin.innerText = "Đang kết nối...";
+    const loginStatus = document.getElementById('loginStatus');
+
+    // Đăng nhập trực tiếp bằng popup
+    btnLogin.addEventListener('click', async () => {
+      loginStatus.innerText = "Đang kết nối tới Google...";
       btnLogin.disabled = true;
 
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-      if (isMobile) {
-        signInWithRedirect(auth, provider);
-      } else {
-        signInWithPopup(auth, provider).catch((err) => {
-          if (err.code === 'auth/popup-blocked') {
-            signInWithRedirect(auth, provider);
-          } else {
-            alert("Lỗi: " + err.message);
-            btnLogin.innerText = "Đăng nhập với Google";
-            btnLogin.disabled = false;
-          }
-        });
+      try {
+        const result = await signInWithPopup(auth, provider);
+        loginStatus.innerText = "Đăng nhập thành công! Đang tải dữ liệu...";
+      } catch (err) {
+        alert("Lỗi đăng nhập: " + err.message);
+        loginStatus.innerText = "";
+        btnLogin.disabled = false;
       }
-    };
+    });
 
     document.getElementById('btnLogout').onclick = () => signOut(auth);
 
@@ -328,12 +301,14 @@
       } else {
         document.getElementById('authSection').style.display = 'block';
         document.getElementById('mainSection').style.display = 'none';
+        btnLogin.disabled = false;
+        loginStatus.innerText = "";
         vocabList = [];
         flashcardDeck = [];
       }
     });
 
-    // NAVIGATION TABS
+    // CHUYỂN TAB
     window.switchTab = (e, tabId) => {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
@@ -343,7 +318,7 @@
       if (tabId === 'tabQuiz') loadNextQuestion();
     };
 
-    // --- QUIZ & PRACTICE LOGIC ---
+    // LOGIC LUYỆN TẬP
     let practiceMode = 'mcq';
     let currentQuizItem = null;
 
@@ -365,7 +340,7 @@
 
       if (vocabList.length < 4 && practiceMode === 'mcq') {
         document.getElementById('quizPromptTitle').innerText = 'Chưa đủ từ vựng';
-        document.getElementById('quizPromptSub').innerText = 'Hãy thêm tối thiểu 4 từ vào danh sách để kích hoạt trắc nghiệm.';
+        document.getElementById('quizPromptSub').innerText = 'Hãy thêm tối thiểu 4 từ để luyện trắc nghiệm.';
         document.getElementById('mcqArea').innerHTML = '';
         return;
       }
@@ -375,7 +350,7 @@
         eligibleList = vocabList.filter(item => item.example && item.example.toLowerCase().includes(item.word.toLowerCase()));
         if (eligibleList.length === 0) {
           document.getElementById('quizPromptTitle').innerText = 'Chưa có ví dụ phù hợp';
-          document.getElementById('quizPromptSub').innerText = 'Hãy thêm các từ có câu ví dụ chứa chính từ đó để chơi điền từ.';
+          document.getElementById('quizPromptSub').innerText = 'Cần có câu ví dụ chứa từ vựng để điền từ.';
           return;
         }
       }
@@ -418,13 +393,13 @@
       const fb = document.getElementById('quizFeedback');
       if (answer === currentQuizItem.meaning) {
         selectedBtn.classList.add('correct');
-        fb.innerHTML = '<span style="color: #10b981;">🎉 Chính xác! Bạn nhớ rất tốt.</span>';
+        fb.innerHTML = '<span style="color: #10b981;">🎉 Chính xác!</span>';
       } else {
         selectedBtn.classList.add('wrong');
         allBtns.forEach(btn => {
           if (btn.innerText === currentQuizItem.meaning) btn.classList.add('correct');
         });
-        fb.innerHTML = `<span style="color: #ef4444;">Chưa chính xác. Đáp án đúng là: <b>${currentQuizItem.meaning}</b></span>`;
+        fb.innerHTML = `<span style="color: #ef4444;">Đáp án đúng là: <b>${currentQuizItem.meaning}</b></span>`;
       }
       document.getElementById('btnNextQuestion').style.display = 'inline-block';
     }
@@ -436,24 +411,21 @@
 
       const fb = document.getElementById('quizFeedback');
       if (val.toLowerCase() === currentQuizItem.word.toLowerCase()) {
-        fb.innerHTML = `<span style="color: #10b981;">🎉 Tuyệt vời! Bạn đã điền chính xác: <b>${currentQuizItem.word}</b></span>`;
+        fb.innerHTML = `<span style="color: #10b981;">🎉 Chính xác: <b>${currentQuizItem.word}</b></span>`;
       } else {
-        fb.innerHTML = `<span style="color: #ef4444;">Chưa đúng. Từ cần điền là: <b>${currentQuizItem.word}</b></span>`;
+        fb.innerHTML = `<span style="color: #ef4444;">Đáp án đúng: <b>${currentQuizItem.word}</b></span>`;
       }
       document.getElementById('btnNextQuestion').style.display = 'inline-block';
     };
 
-    // QUẢN LÝ POPUP AI CHAT
+    // AI CHAT
     const aiPopup = document.getElementById('aiChatPopup');
-    const btnToggleAiChat = document.getElementById('btnToggleAiChat');
-    const btnCloseAiChat = document.getElementById('btnCloseAiChat');
-
-    btnToggleAiChat.onclick = () => aiPopup.classList.toggle('active');
-    btnCloseAiChat.onclick = () => aiPopup.classList.remove('active');
+    document.getElementById('btnToggleAiChat').onclick = () => aiPopup.classList.toggle('active');
+    document.getElementById('btnCloseAiChat').onclick = () => aiPopup.classList.remove('active');
 
     let geminiApiKey = localStorage.getItem('vblab_gemini_key') || '';
     document.getElementById('btnConfigKey').onclick = () => {
-      const key = prompt('Nhập Gemini API Key (Lấy tại aistudio.google.com):', geminiApiKey);
+      const key = prompt('Nhập Gemini API Key:', geminiApiKey);
       if (key !== null) {
         geminiApiKey = key.trim();
         localStorage.setItem('vblab_gemini_key', geminiApiKey);
@@ -485,7 +457,7 @@
       if (!question) return;
 
       if (!geminiApiKey) {
-        const key = prompt('Hãy nhập Google Gemini API Key để trò chuyện:');
+        const key = prompt('Nhập Google Gemini API Key:');
         if (!key) return;
         geminiApiKey = key.trim();
         localStorage.setItem('vblab_gemini_key', geminiApiKey);
@@ -496,7 +468,7 @@
       btnSendChat.disabled = true;
       appendMessage('bot', '<span id="aiThinking"><i>AI đang nghĩ...</i></span>');
 
-      const systemPrompt = `Bạn là trợ lý từ vựng tiếng Anh của VBLab. CHỈ giải thích các câu hỏi liên quan đến tiếng Anh (từ vựng, nghĩa, sắc thái, ví dụ, phân biệt từ). Trả lời ngắn gọn, dễ hiểu bằng HTML cơ bản (dùng <b>, <i>, <ul>, <li>), không dùng markdown block.`;
+      const systemPrompt = `Bạn là trợ lý từ vựng tiếng Anh của VBLab. Giải thích ngắn gọn, dễ hiểu bằng thẻ HTML <b>, <i>, <ul>, <li>.`;
 
       try {
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${geminiApiKey}`;
@@ -510,22 +482,16 @@
 
         const data = await response.json();
         const thinkingEl = document.getElementById('aiThinking');
-        if (thinkingEl && thinkingEl.parentElement) {
-          thinkingEl.parentElement.remove();
-        }
+        if (thinkingEl && thinkingEl.parentElement) thinkingEl.parentElement.remove();
 
-        if (!response.ok) {
-          throw new Error(data.error?.message || 'Lỗi kết nối tới Google API');
-        }
+        if (!response.ok) throw new Error(data.error?.message || 'Lỗi API');
 
         let reply = data.candidates[0].content.parts[0].text;
         reply = reply.replace(/```html/g, '').replace(/```/g, '').trim();
         appendMessage('bot', reply);
       } catch (err) {
         const thinkingEl = document.getElementById('aiThinking');
-        if (thinkingEl && thinkingEl.parentElement) {
-          thinkingEl.parentElement.remove();
-        }
+        if (thinkingEl && thinkingEl.parentElement) thinkingEl.parentElement.remove();
         appendMessage('bot', `<span style="color:red;">Lỗi: ${err.message}</span>`);
       } finally {
         btnSendChat.disabled = false;
@@ -597,7 +563,7 @@
       const wordRef = doc(db, `users/${currentUser.uid}/vocabularies`, wordKey);
       const docSnap = await getDoc(wordRef);
       if (docSnap.exists()) {
-        alert(`Từ "${rawWord}" đã tồn tại trong danh sách.`);
+        alert(`Từ "${rawWord}" đã tồn tại.`);
         return;
       }
 
@@ -609,7 +575,7 @@
         createdAt: new Date().toISOString()
       });
 
-      alert(`Đã lưu từ "${rawWord}" thành công.`);
+      alert(`Đã lưu "${rawWord}" thành công.`);
       document.getElementById('wordForm').reset();
     };
 
@@ -669,7 +635,7 @@
       const container = document.getElementById('wordListContainer');
       container.innerHTML = '';
       if (list.length === 0) {
-        container.innerHTML = '<p style="text-align:center; color:var(--text-muted); padding: 20px 0; font-size: 14px;">Không tìm thấy từ vựng phù hợp.</p>';
+        container.innerHTML = '<p style="text-align:center; color:var(--text-muted); padding: 20px 0; font-size: 14px;">Không tìm thấy từ vựng.</p>';
         return;
       }
 
@@ -746,7 +712,7 @@
 
     document.getElementById('searchInput').oninput = applyFiltersAndSearch;
 
-    // FLASHCARD LOGIC
+    // FLASHCARD
     window.toggleFlashcardMode = () => {
       isReverseMode = !isReverseMode;
       document.getElementById('btnModeToggle').innerText = isReverseMode ? 'Chế độ: VI → EN (Lật ngược)' : 'Chế độ: EN → VI (Chuẩn)';
